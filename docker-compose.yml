@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  auth_db:
+    image: mariadb:latest
+    container_name: auth_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: auth_db,
+      MYSQL_ROOT_PASSWORD: loadly_password
+      MYSQL_USER: loadly
+      MYSQL_PASSWORD: loadly_password
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+    volumes:
+      - ./databases/auth_db/dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - loadly
+
+  app_db:
+    image: mariadb:latest
+    container_name: app_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: loadly_db,
+      MYSQL_ROOT_PASSWORD: loadly_password
+      MYSQL_USER: loadly
+      MYSQL_PASSWORD: loadly_password
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+    volumes:
+      - ./databases/app_db/dbdata:/var/lib/mysql
+    ports:
+      - "33066:3306"
+    networks:
+      - loadly
+
+  auth_service:
+    container_name: auth_service
+    build:
+      context: ./docker
+    ports:
+      - "80:80"
+    volumes:
+      - ./services/auth_service:/var/www/app
+      - ./docker/apache/auth_service/default.conf:/etc/apache2/sites-enabled/000-default.conf
+    depends_on:
+      - auth_db
+    networks:
+      - loadly
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - loadly
+
+networks:
+  loadly:
+    driver: bridge
+    
+  # shipper_service:
+  #   container_name: shipper_service
+  #   build:
+  #     context: ./docker
+  #   ports:
+  #     - "81:80"
+  #   volumes:
+  #     - ./services/shipper_service:/var/www/app
+  #     - ./docker/apache/shipper_service/default.conf:/etc/apache2/sites-enabled/000-default.conf
+  #   depends_on:
+  #     - auth_db
+  #     - app_db
+  #   networks:
+  #     - loadly
+
+  # carrier_service:
+  #   container_name: carrier_service
+  #   build:
+  #     context: ./docker
+  #   ports:
+  #     - "82:80"
+  #   volumes:
+  #     - ./services/carrier_service:/var/www/app
+  #     - ./docker/apache/carrier_service/default.conf:/etc/apache2/sites-enabled/000-default.conf
+  #   depends_on:
+  #     - auth_db
+  #     - app_db
+  #   networks:
+  #     - loadly
+
+  # sp_service:
+  #   container_name: sp_service
+  #   build:
+  #     context: ./docker
+  #   ports:
+  #     - "83:80"
+  #   volumes:
+  #     - ./services/sp_service:/var/www/app
+  #     - ./docker/apache/sp_service/default.conf:/etc/apache2/sites-enabled/000-default.conf
+  #   depends_on:
+  #     - auth_db
+  #     - app_db
+  #   networks:
+  #     - loadly

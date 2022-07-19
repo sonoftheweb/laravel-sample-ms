@@ -1,0 +1,14 @@
+[
+  {
+    "name": "admin"
+  },
+  {
+    "name": "shipper"
+  },
+  {
+    "name": "carrier"
+  },
+  {
+    "name": "service_provider"
+  }
+]
